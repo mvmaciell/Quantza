@@ -1,11 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
-  Image,
   Dimensions,
   SafeAreaView,
   StatusBar,
@@ -17,6 +15,10 @@ import Animated, {
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
+
+// Importando os placeholders SVG
+import OnboardingPlaceholders from '../../assets/onboarding/placeholders';
+import OnboardingAssets from '../../assets/onboarding';
 
 // Constantes de cores da identidade visual Quantza
 const COLORS = {
@@ -43,31 +45,31 @@ const OnboardingScreen = ({ navigation }) => {
       id: '1',
       title: 'Bem-vindo ao Quantza',
       description: 'O aplicativo de mobilidade que revoluciona sua experiência de transporte.',
-      image: require('../../assets/onboarding/welcome.png'), // Placeholder - criar este arquivo
+      PlaceholderComponent: OnboardingPlaceholders.Welcome,
     },
     {
       id: '2',
       title: 'Multi-serviços',
       description: 'Corridas, entregas, transporte de animais e muito mais em um só lugar.',
-      image: require('../../assets/onboarding/services.png'), // Placeholder - criar este arquivo
+      PlaceholderComponent: OnboardingPlaceholders.Services,
     },
     {
       id: '3',
       title: 'Programa de Pontos',
       description: 'Ganhe pontos em cada corrida e troque por benefícios exclusivos.',
-      image: require('../../assets/onboarding/points.png'), // Placeholder - criar este arquivo
+      PlaceholderComponent: OnboardingPlaceholders.Points,
     },
     {
       id: '4',
       title: 'Doações Automáticas',
       description: 'Parte de cada corrida é destinada a projetos sociais. Faça a diferença a cada viagem.',
-      image: require('../../assets/onboarding/donations.png'), // Placeholder - criar este arquivo
+      PlaceholderComponent: OnboardingPlaceholders.Donations,
     },
     {
       id: '5',
       title: 'Carteira Digital',
       description: 'Gerencie seus pagamentos, pontos e doações em um só lugar.',
-      image: require('../../assets/onboarding/wallet.png'), // Placeholder - criar este arquivo
+      PlaceholderComponent: OnboardingPlaceholders.Wallet,
     },
   ];
 
@@ -79,6 +81,16 @@ const OnboardingScreen = ({ navigation }) => {
   
   // Valor compartilhado para animação do scroll
   const scrollX = useSharedValue(0);
+  
+  // Efeito para pré-carregar assets (quando estiverem disponíveis)
+  useEffect(() => {
+    // Tentativa de pré-carregar assets, com fallback silencioso
+    try {
+      OnboardingAssets.preloadAssets();
+    } catch (error) {
+      console.log('Assets ainda não disponíveis para pré-carregamento');
+    }
+  }, []);
   
   // Handler para o evento de scroll
   const scrollHandler = useAnimatedScrollHandler({
@@ -96,13 +108,13 @@ const OnboardingScreen = ({ navigation }) => {
       });
     } else {
       // Último slide, navegar para a tela de login/cadastro
-      navigation.replace('Login');
+      navigation.replace('Auth', { screen: 'Login' });
     }
   };
 
   // Função para pular o onboarding
   const skipOnboarding = () => {
-    navigation.replace('Login');
+    navigation.replace('Auth', { screen: 'Login' });
   };
 
   // Renderiza um item do slide
@@ -135,14 +147,13 @@ const OnboardingScreen = ({ navigation }) => {
       };
     });
 
+    // Componente de placeholder para este slide
+    const PlaceholderComponent = item.PlaceholderComponent;
+
     return (
-      <View style={styles.slide}>
+      <View style={styles.slide} testID={`onboardingSlide-${index}`}>
         <Animated.View style={[styles.imageContainer, animatedStyle]}>
-          <Image
-            source={item.image}
-            style={styles.image}
-            resizeMode="contain"
-          />
+          <PlaceholderComponent />
         </Animated.View>
         <View style={styles.textContainer}>
           <Text style={styles.title}>{item.title}</Text>
@@ -164,7 +175,7 @@ const OnboardingScreen = ({ navigation }) => {
               (index + 1) * width,
             ];
             
-            const width = interpolate(
+            const dotWidth = interpolate(
               scrollX.value,
               inputRange,
               [8, 16, 8],
@@ -179,7 +190,7 @@ const OnboardingScreen = ({ navigation }) => {
             );
             
             return {
-              width,
+              width: dotWidth,
               opacity,
               backgroundColor: currentIndex === index ? COLORS.primary : COLORS.white,
             };
@@ -189,6 +200,7 @@ const OnboardingScreen = ({ navigation }) => {
             <Animated.View
               key={`dot-${index}`}
               style={[styles.dot, animatedDotStyle]}
+              testID={`paginationDot-${index}`}
             />
           );
         })}
@@ -261,6 +273,7 @@ const styles = StyleSheet.create({
     top: 20,
     right: 20,
     zIndex: 1,
+    padding: 10,
   },
   skipText: {
     color: COLORS.white,
@@ -280,10 +293,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 40,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
   },
   textContainer: {
     alignItems: 'center',
