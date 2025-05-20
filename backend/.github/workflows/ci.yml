@@ -1,0 +1,49 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main, develop ] # Adapte para seus branches principais
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18' # Use a mesma versão do seu Dockerfile
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        npm install
+
+    # Adicione um passo para rodar linters, se configurado no package.json
+    # - name: Run Linter
+    #   run: |
+    #     cd backend
+    #     npm run lint
+
+    # Adicione um passo para compilar TypeScript, se necessário antes dos testes
+    # - name: Build TypeScript
+    #   run: |
+    #     cd backend
+    #     npm run build
+
+    # Adicione um passo para rodar testes, se configurado no package.json
+    # - name: Run Tests
+    #   run: |
+    #     cd backend
+    #     npm test
+
+    # Exemplo de passo para construir a imagem Docker (opcional, mas bom para validar o Dockerfile)
+    - name: Build Docker image
+      run: |
+        cd backend
+        docker build . --file Dockerfile --tag quantza-backend:latest
+

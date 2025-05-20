@@ -1,0 +1,45 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, develop ] # Adapte para seus branches principais
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18' # Use a mesma versão do seu Dockerfile
+
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm install
+
+    # Adicione um passo para rodar linters, se configurado no package.json
+    # - name: Run Linter
+    #   run: |
+    #     cd frontend
+    #     npm run lint
+
+    # Adicione um passo para rodar testes, se configurado no package.json
+    # - name: Run Tests
+    #   run: |
+    #     cd frontend
+    #     npm test # ou o comando específico para testes do React Native
+
+    # Para React Native, o "build" para CI geralmente envolve linting e testes.
+    # A construção do app em si (APK/IPA) é um processo mais complexo e pode ser um workflow separado.
+    # Exemplo de passo para validar o Dockerfile do ambiente de desenvolvimento (opcional)
+    # - name: Build Docker image (dev environment)
+    #   run: |
+    #     cd frontend
+    #     docker build . --file Dockerfile --tag quantza-frontend-dev:latest
+
